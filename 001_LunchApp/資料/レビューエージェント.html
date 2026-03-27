@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>設計書レビューエージェント</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=JetBrains+Mono:wght@400;600&display=swap');
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #222536;
+    --border: #2e3248;
+    --accent: #6c8fff;
+    --accent2: #a78bfa;
+    --green: #34d399;
+    --yellow: #fbbf24;
+    --red: #f87171;
+    --text: #e2e8f0;
+    --text2: #94a3b8;
+    --text3: #64748b;
+  }
+
+  body {
+    font-family: 'Noto Sans JP', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  header {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--surface);
+    flex-shrink: 0;
+  }
+
+  .logo {
+    width: 32px; height: 32px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+  }
+
+  header h1 { font-size: 15px; font-weight: 600; letter-spacing: 0.02em; }
+  header p { font-size: 11px; color: var(--text3); margin-top: 1px; }
+
+  .status-badge {
+    margin-left: auto;
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    color: var(--text3);
+  }
+  .status-badge.ready { border-color: var(--green); color: var(--green); }
+
+  .main {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  /* サイドパネル */
+  .side {
+    width: 260px;
+    border-right: 1px solid var(--border);
+    background: var(--surface);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+  }
+
+  .side-section { padding: 14px 16px; border-bottom: 1px solid var(--border); }
+  .side-label { font-size: 10px; color: var(--text3); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 8px; }
+
+  .upload-area {
+    border: 1px dashed var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: var(--bg);
+  }
+  .upload-area:hover { border-color: var(--accent); background: rgba(108,143,255,0.05); }
+  .upload-area.dragover { border-color: var(--accent); background: rgba(108,143,255,0.1); }
+  .upload-area p { font-size: 12px; color: var(--text3); margin-top: 6px; }
+  .upload-icon { font-size: 22px; }
+
+  #fileInput { display: none; }
+
+  .file-list { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+
+  .file-item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 7px 10px;
+    background: var(--bg);
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    font-size: 12px;
+    position: relative;
+  }
+  .file-item .file-icon { font-size: 14px; flex-shrink: 0; }
+  .file-item .file-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text2); }
+  .file-item .file-remove {
+    color: var(--text3); cursor: pointer; font-size: 14px;
+    background: none; border: none; padding: 0; line-height: 1;
+  }
+  .file-item .file-remove:hover { color: var(--red); }
+
+  .doc-type-badge {
+    font-size: 9px; padding: 1px 5px; border-radius: 3px;
+    background: rgba(108,143,255,0.15); color: var(--accent);
+    flex-shrink: 0;
+  }
+
+  .review-btn {
+    margin: 14px 16px;
+    padding: 10px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    transition: opacity 0.2s;
+    width: calc(100% - 32px);
+  }
+  .review-btn:hover { opacity: 0.9; }
+  .review-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .checklist { padding: 0 16px 14px; display: flex; flex-direction: column; gap: 5px; }
+  .check-item {
+    display: flex; align-items: center; gap: 7px;
+    font-size: 11px; color: var(--text3);
+  }
+  .check-item .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--border); flex-shrink: 0;
+  }
+  .check-item.done .dot { background: var(--green); }
+  .check-item.done { color: var(--text2); }
+
+  /* チャットエリア */
+  .chat-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .messages::-webkit-scrollbar { width: 4px; }
+  .messages::-webkit-scrollbar-track { background: transparent; }
+  .messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .msg { display: flex; gap: 10px; max-width: 100%; }
+  .msg.user { flex-direction: row-reverse; }
+
+  .avatar {
+    width: 30px; height: 30px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; flex-shrink: 0;
+    background: var(--surface2); border: 1px solid var(--border);
+  }
+  .msg.user .avatar { background: linear-gradient(135deg, var(--accent), var(--accent2)); border: none; }
+
+  .bubble {
+    max-width: calc(100% - 50px);
+    padding: 11px 14px;
+    border-radius: 12px;
+    font-size: 13px;
+    line-height: 1.7;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+  }
+  .msg.user .bubble {
+    background: rgba(108,143,255,0.15);
+    border-color: rgba(108,143,255,0.3);
+    color: var(--text);
+  }
+
+  .bubble h4 { font-size: 12px; color: var(--accent); margin-bottom: 6px; font-weight: 600; }
+
+  .review-result { display: flex; flex-direction: column; gap: 8px; }
+
+  .result-section {
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 12px;
+    line-height: 1.6;
+  }
+  .result-section.ok { background: rgba(52,211,153,0.08); border: 1px solid rgba(52,211,153,0.2); }
+  .result-section.warn { background: rgba(251,191,36,0.08); border: 1px solid rgba(251,191,36,0.2); }
+  .result-section.error { background: rgba(248,113,113,0.08); border: 1px solid rgba(248,113,113,0.2); }
+  .result-section.info { background: rgba(108,143,255,0.08); border: 1px solid rgba(108,143,255,0.2); }
+
+  .result-title {
+    font-weight: 600; margin-bottom: 5px; display: flex; align-items: center; gap: 5px;
+  }
+  .result-section.ok .result-title { color: var(--green); }
+  .result-section.warn .result-title { color: var(--yellow); }
+  .result-section.error .result-title { color: var(--red); }
+  .result-section.info .result-title { color: var(--accent); }
+
+  .result-items { color: var(--text2); }
+  .result-items li { margin-left: 14px; margin-top: 3px; }
+
+  .verdict {
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    text-align: center;
+    margin-top: 4px;
+  }
+  .verdict.pass { background: rgba(52,211,153,0.15); color: var(--green); border: 1px solid rgba(52,211,153,0.3); }
+  .verdict.partial { background: rgba(251,191,36,0.15); color: var(--yellow); border: 1px solid rgba(251,191,36,0.3); }
+  .verdict.fail { background: rgba(248,113,113,0.15); color: var(--red); border: 1px solid rgba(248,113,113,0.2); }
+
+  .typing { display: flex; align-items: center; gap: 4px; padding: 4px 0; }
+  .typing span {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--text3); animation: bounce 1.2s infinite;
+  }
+  .typing span:nth-child(2) { animation-delay: 0.2s; }
+  .typing span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes bounce {
+    0%, 60%, 100% { transform: translateY(0); }
+    30% { transform: translateY(-6px); }
+  }
+
+  /* 入力欄 */
+  .input-area {
+    padding: 14px 20px;
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+    flex-shrink: 0;
+  }
+
+  textarea {
+    flex: 1;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 13px;
+    padding: 10px 14px;
+    resize: none;
+    min-height: 42px;
+    max-height: 120px;
+    line-height: 1.6;
+    transition: border-color 0.2s;
+    outline: none;
+  }
+  textarea:focus { border-color: var(--accent); }
+  textarea::placeholder { color: var(--text3); }
+
+  .send-btn {
+    width: 40px; height: 40px;
+    background: var(--accent);
+    border: none; border-radius: 10px;
+    color: #fff; cursor: pointer;
+    font-size: 16px;
+    display: flex; align-items: center; justify-content: center;
+    transition: opacity 0.2s; flex-shrink: 0;
+  }
+  .send-btn:hover { opacity: 0.85; }
+  .send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .empty-state {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 12px; color: var(--text3);
+    padding: 40px;
+    text-align: center;
+  }
+  .empty-state .icon { font-size: 40px; opacity: 0.5; }
+  .empty-state h3 { font-size: 15px; color: var(--text2); }
+  .empty-state p { font-size: 12px; line-height: 1.7; }
+
+  .quick-btns { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; justify-content: center; }
+  .quick-btn {
+    padding: 6px 12px; border-radius: 20px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text2); font-size: 11px;
+    cursor: pointer; font-family: inherit;
+    transition: all 0.2s;
+  }
+  .quick-btn:hover { border-color: var(--accent); color: var(--accent); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">🔍</div>
+  <div>
+    <h1>設計書レビューエージェント</h1>
+    <p>抜け漏れ・整合性・Claude Code 渡し可否を判定</p>
+  </div>
+  <div class="status-badge" id="statusBadge">待機中</div>
+</header>
+
+<div class="main">
+  <!-- サイドパネル -->
+  <div class="side">
+    <div class="side-section">
+      <div class="side-label">設計書をアップロード</div>
+      <div class="upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()">
+        <div class="upload-icon">📄</div>
+        <p>クリックまたはドロップ<br>.md / .txt ファイル</p>
+      </div>
+      <input type="file" id="fileInput" multiple accept=".md,.txt">
+      <div class="file-list" id="fileList"></div>
+    </div>
+
+    <div class="side-section">
+      <div class="side-label">読み込み状況</div>
+      <div class="checklist" id="checklist">
+        <div class="check-item" data-doc="企画書"><div class="dot"></div>企画書</div>
+        <div class="check-item" data-doc="要件定義"><div class="dot"></div>要件定義</div>
+        <div class="check-item" data-doc="基本設計"><div class="dot"></div>基本設計</div>
+        <div class="check-item" data-doc="詳細設計"><div class="dot"></div>詳細設計</div>
+      </div>
+    </div>
+
+    <button class="review-btn" id="reviewBtn" disabled onclick="startFullReview()">
+      📋 一括レビュー開始
+    </button>
+  </div>
+
+  <!-- チャット -->
+  <div class="chat-area">
+    <div class="messages" id="messages">
+      <div class="empty-state" id="emptyState">
+        <div class="icon">🤖</div>
+        <h3>設計書をアップロードしてください</h3>
+        <p>企画書・要件定義・基本設計・詳細設計の<br>mdファイルを読み込むと<br>レビューを開始できます</p>
+        <div class="quick-btns" id="quickBtns" style="display:none">
+          <button class="quick-btn" onclick="quickAsk('抜け漏れを確認して')">抜け漏れ確認</button>
+          <button class="quick-btn" onclick="quickAsk('工程間の整合性を確認して')">整合性確認</button>
+          <button class="quick-btn" onclick="quickAsk('Claude Codeに渡せる状態か判定して')">Claude Code判定</button>
+          <button class="quick-btn" onclick="quickAsk('改善が必要な点を教えて')">改善点を聞く</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="input-area">
+      <textarea id="userInput" placeholder="設計書について質問してください..." rows="1"
+        onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+      <button class="send-btn" id="sendBtn" onclick="sendMessage()" disabled>↑</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const API_URL = "https://api.anthropic.com/v1/messages";
+  let uploadedDocs = {};
+  let chatHistory = [];
+  let isLoading = false;
+
+  // ファイルアップロード
+  const fileInput = document.getElementById('fileInput');
+  const uploadArea = document.getElementById('uploadArea');
+
+  fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
+  uploadArea.addEventListener('dragover', (e) => { e.preventDefault(); uploadArea.classList.add('dragover'); });
+  uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('dragover'));
+  uploadArea.addEventListener('drop', (e) => { e.preventDefault(); uploadArea.classList.remove('dragover'); handleFiles(e.dataTransfer.files); });
+
+  function handleFiles(files) {
+    Array.from(files).forEach(file => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const content = e.target.result;
+        const docType = detectDocType(file.name, content);
+        uploadedDocs[file.name] = { content, type: docType, name: file.name };
+        renderFileList();
+        updateChecklist();
+        updateButtons();
+      };
+      reader.readAsText(file, 'UTF-8');
+    });
+  }
+
+  function detectDocType(filename, content) {
+    if (filename.includes('企画書') || content.includes('# ランチ記録アプリ 企画書')) return '企画書';
+    if (filename.includes('要件定義') || content.includes('要件定義')) return '要件定義';
+    if (filename.includes('基本設計') || content.includes('基本設計')) return '基本設計';
+    if (filename.includes('詳細設計') || content.includes('詳細設計')) return '詳細設計';
+    return 'その他';
+  }
+
+  function renderFileList() {
+    const list = document.getElementById('fileList');
+    list.innerHTML = Object.values(uploadedDocs).map(doc => `
+      <div class="file-item">
+        <span class="file-icon">📄</span>
+        <span class="file-name">${doc.name}</span>
+        <span class="doc-type-badge">${doc.type}</span>
+        <button class="file-remove" onclick="removeFile('${doc.name}')">×</button>
+      </div>
+    `).join('');
+  }
+
+  function removeFile(name) {
+    delete uploadedDocs[name];
+    renderFileList();
+    updateChecklist();
+    updateButtons();
+  }
+
+  function updateChecklist() {
+    const types = Object.values(uploadedDocs).map(d => d.type);
+    document.querySelectorAll('.check-item').forEach(item => {
+      const doc = item.dataset.doc;
+      item.classList.toggle('done', types.includes(doc));
+    });
+  }
+
+  function updateButtons() {
+    const hasFiles = Object.keys(uploadedDocs).length > 0;
+    document.getElementById('reviewBtn').disabled = !hasFiles;
+    document.getElementById('sendBtn').disabled = !hasFiles;
+    if (hasFiles) {
+      document.getElementById('statusBadge').textContent = `${Object.keys(uploadedDocs).length}件読込済`;
+      document.getElementById('statusBadge').classList.add('ready');
+      document.getElementById('quickBtns').style.display = 'flex';
+      document.getElementById('emptyState').querySelector('h3').textContent = 'レビューを開始できます';
+      document.getElementById('emptyState').querySelector('p').textContent = '下のボタンか、テキストで質問してください';
+    }
+  }
+
+  function buildSystemPrompt() {
+    const docs = Object.values(uploadedDocs).map(d => `=== ${d.type}（${d.name}） ===\n${d.content}`).join('\n\n');
+    return `あなたはシステム開発の設計書をレビューする専門エージェントです。
+
+以下の設計書が提供されています：
+
+${docs}
+
+レビューの観点：
+1. 抜け漏れ・記載不足の指摘（必要な項目が書かれているか）
+2. 工程間の整合性確認（企画書→要件定義→基本設計→詳細設計で矛盾がないか）
+3. Claude Codeに渡せる状態かの判定（開発者が迷わずコードを書けるか）
+
+回答スタイル：
+- 日本語で回答
+- 具体的・簡潔に
+- 問題点には必ず改善案を添える
+- 「Claude Code判定」を求められたら最後に ✅渡せる / ⚠️要修正 / ❌渡せない を明示する`;
+  }
+
+  async function sendMessage(overrideText) {
+    const input = document.getElementById('userInput');
+    const text = overrideText || input.value.trim();
+    if (!text || isLoading) return;
+
+    input.value = '';
+    autoResize(input);
+    hideEmptyState();
+    addMessage('user', text);
+    chatHistory.push({ role: 'user', content: text });
+
+    isLoading = true;
+    document.getElementById('sendBtn').disabled = true;
+    const typingId = addTyping();
+
+    try {
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 1000,
+          system: buildSystemPrompt(),
+          messages: chatHistory
+        })
+      });
+
+      const data = await response.json();
+      removeTyping(typingId);
+
+      const reply = data.content?.[0]?.text || 'エラーが発生しました。';
+      chatHistory.push({ role: 'assistant', content: reply });
+      addMessage('assistant', reply);
+    } catch (e) {
+      removeTyping(typingId);
+      addMessage('assistant', 'APIエラーが発生しました。設定を確認してください。');
+    }
+
+    isLoading = false;
+    document.getElementById('sendBtn').disabled = false;
+  }
+
+  async function startFullReview() {
+    const types = Object.values(uploadedDocs).map(d => d.type);
+    const prompt = `アップロードされた設計書（${types.join('・')}）を一括レビューしてください。以下の3点を確認してください：
+1. 各ドキュメントの抜け漏れ・記載不足
+2. 工程間の整合性
+3. Claude Codeに渡せる状態かの最終判定`;
+    await sendMessage(prompt);
+  }
+
+  function quickAsk(text) {
+    document.getElementById('userInput').value = text;
+    sendMessage();
+  }
+
+  function addMessage(role, text) {
+    const messages = document.getElementById('messages');
+    const div = document.createElement('div');
+    div.className = `msg ${role}`;
+    div.innerHTML = `
+      <div class="avatar">${role === 'user' ? '👤' : '🔍'}</div>
+      <div class="bubble">${formatText(text)}</div>
+    `;
+    messages.appendChild(div);
+    messages.scrollTop = messages.scrollHeight;
+  }
+
+  function formatText(text) {
+    return text
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/^#{1,3}\s(.+)$/gm, '<h4>$1</h4>')
+      .replace(/^[-・]\s(.+)$/gm, '• $1<br>')
+      .replace(/✅/g, '<span style="color:#34d399">✅</span>')
+      .replace(/⚠️/g, '<span style="color:#fbbf24">⚠️</span>')
+      .replace(/❌/g, '<span style="color:#f87171">❌</span>')
+      .replace(/\n\n/g, '<br><br>')
+      .replace(/\n/g, '<br>');
+  }
+
+  let typingCounter = 0;
+  function addTyping() {
+    const id = ++typingCounter;
+    const messages = document.getElementById('messages');
+    const div = document.createElement('div');
+    div.className = 'msg';
+    div.id = `typing-${id}`;
+    div.innerHTML = `<div class="avatar">🔍</div><div class="bubble"><div class="typing"><span></span><span></span><span></span></div></div>`;
+    messages.appendChild(div);
+    messages.scrollTop = messages.scrollHeight;
+    return id;
+  }
+
+  function removeTyping(id) {
+    const el = document.getElementById(`typing-${id}`);
+    if (el) el.remove();
+  }
+
+  function hideEmptyState() {
+    const el = document.getElementById('emptyState');
+    if (el) el.remove();
+  }
+
+  function handleKey(e) {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+  }
+
+  function autoResize(el) {
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+  }
+</script>
+</body>
+</html>
