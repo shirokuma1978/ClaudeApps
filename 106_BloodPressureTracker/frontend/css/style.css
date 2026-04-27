@@ -163,6 +163,29 @@ body {
   background: var(--primary-dark);
 }
 
+/* Graph button */
+.graph-btn {
+  position: fixed;
+  bottom: 24px;
+  right: 92px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #fff;
+  font-size: 26px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  line-height: 1;
+}
+
+.graph-btn:active {
+  opacity: 0.8;
+}
+
 /* Form */
 .form-group {
   margin-bottom: 16px;
