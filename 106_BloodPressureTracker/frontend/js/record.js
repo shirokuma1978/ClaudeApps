@@ -14,8 +14,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 // ── New Record ──────────────────────────────────────────────
 function initNewForm() {
-  document.getElementById("measured_date").value = todayStr();
-  document.getElementById("time_slot").value = detectTimeSlot();
+  document.getElementById("measured_at").value = nowLocalStr();
 
   document.getElementById("record-form").addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -60,7 +59,7 @@ async function initDetail(id) {
 }
 
 function renderDetail(r) {
-  const dateStr = formatDate(r.measured_date) + (r.time_slot ? `　${r.time_slot}` : "");
+  const dateStr = formatDateTime(r.measured_at);
   const cat = getBPCategory(r.systolic, r.diastolic);
 
   const rows = [
@@ -128,17 +127,8 @@ function buildFormHtml(r) {
   return `
     <form id="record-form" class="detail-section">
       <div class="form-group">
-        <label class="form-label">日付<span class="required">*</span></label>
-        <input type="date" id="measured_date" class="form-control" value="${r.measured_date}" required>
-      </div>
-      <div class="form-group">
-        <label class="form-label">時間帯</label>
-        <select id="time_slot" class="form-control">
-          <option value="">選択してください</option>
-          <option value="朝" ${r.time_slot === "朝" ? "selected" : ""}>朝</option>
-          <option value="夜" ${r.time_slot === "夜" ? "selected" : ""}>夜</option>
-          <option value="その他" ${r.time_slot === "その他" ? "selected" : ""}>その他</option>
-        </select>
+        <label class="form-label">日時<span class="required">*</span></label>
+        <input type="datetime-local" id="measured_at" class="form-control" value="${r.measured_at.slice(0, 16)}" required>
       </div>
       <div class="form-group">
         <label class="form-label">収縮期（上）/ 拡張期（下）<span class="required">*</span></label>
@@ -175,8 +165,7 @@ function buildFormHtml(r) {
 function collectFormData() {
   const pulseVal = document.getElementById("pulse").value;
   return {
-    measured_date: document.getElementById("measured_date").value,
-    time_slot: document.getElementById("time_slot").value || null,
+    measured_at: document.getElementById("measured_at").value,
     systolic: parseInt(document.getElementById("systolic").value),
     diastolic: parseInt(document.getElementById("diastolic").value),
     pulse: pulseVal !== "" ? parseInt(pulseVal) : null,
@@ -188,7 +177,7 @@ function validateForm() {
   let valid = true;
   const sysEl = document.getElementById("systolic");
   const diaEl = document.getElementById("diastolic");
-  const dateEl = document.getElementById("measured_date");
+  const dateEl = document.getElementById("measured_at");
   const errEl = document.getElementById("bp-error");
 
   [sysEl, diaEl, dateEl].forEach(el => el.classList.remove("error"));

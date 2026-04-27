@@ -41,14 +41,13 @@ async function loadRecords() {
 }
 
 function recordCard(r) {
-  const date = formatDate(r.measured_date);
-  const slot = r.time_slot ? ` ${r.time_slot}` : "";
+  const dt = formatDateTime(r.measured_at);
   const cat = getBPCategory(r.systolic, r.diastolic);
   const pulse = r.pulse ? `脈拍 ${r.pulse}` : "";
   return `
     <a class="card" href="/record_detail.html?id=${r.id}">
       <div class="card-meta">
-        ${date}${slot}
+        ${dt}
         <span class="bp-badge ${cat.cls}">${cat.label}</span>
       </div>
       <div class="card-title">${r.systolic}/${r.diastolic} <span style="font-size:16px;font-weight:400;color:var(--muted)">mmHg</span></div>

@@ -1,11 +1,10 @@
-from datetime import date, datetime
+from datetime import datetime
 from typing import Optional
 from pydantic import BaseModel, EmailStr, field_validator
 
 
 class RecordBase(BaseModel):
-    measured_date: date
-    time_slot: Optional[str] = None
+    measured_at: datetime
     systolic: int
     diastolic: int
     pulse: Optional[int] = None

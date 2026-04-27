@@ -34,11 +34,11 @@ function renderChart(days) {
   }
 
   // 日付順に並べる
-  const sorted = [...records].sort((a, b) => a.measured_date.localeCompare(b.measured_date));
+  const sorted = [...records].sort((a, b) => a.measured_at.localeCompare(b.measured_at));
 
   const labels = sorted.map(r => {
-    const d = new Date(r.measured_date + "T00:00:00");
-    return `${d.getMonth() + 1}/${d.getDate()}${r.time_slot ? " " + r.time_slot : ""}`;
+    const d = new Date(r.measured_at);
+    return `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
   });
 
   const systolicData = sorted.map(r => r.systolic);
@@ -117,8 +117,8 @@ function filterRecords(records, days) {
   if (days === 0) return records;
   const cutoff = new Date();
   cutoff.setDate(cutoff.getDate() - days);
-  const cutoffStr = cutoff.toISOString().slice(0, 10);
-  return records.filter(r => r.measured_date >= cutoffStr);
+  const cutoffStr = cutoff.toISOString().slice(0, 16);
+  return records.filter(r => r.measured_at >= cutoffStr);
 }
 
 function renderStats(sorted) {

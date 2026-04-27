@@ -16,7 +16,7 @@ def get_records(
     return (
         db.query(models.BPRecord)
         .filter(models.BPRecord.user_id == current_user.id)
-        .order_by(models.BPRecord.measured_date.desc(), models.BPRecord.id.desc())
+        .order_by(models.BPRecord.measured_at.desc())
         .all()
     )
 

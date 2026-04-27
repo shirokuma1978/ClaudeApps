@@ -1,5 +1,5 @@
 from datetime import datetime
-from sqlalchemy import Column, Integer, String, Date, DateTime, Text, Index, ForeignKey
+from sqlalchemy import Column, Integer, DateTime, Text, Index, ForeignKey
 from sqlalchemy.orm import relationship
 from .database import Base
 
@@ -19,14 +19,13 @@ class User(Base):
 class BPRecord(Base):
     __tablename__ = "bp_records"
     __table_args__ = (
-        Index("idx_bp_date", "measured_date"),
+        Index("idx_bp_measured_at", "measured_at"),
     )
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
-    measured_date = Column(Date, nullable=False)
-    time_slot = Column(String(10))          # 朝 / 夜 / その他
-    systolic = Column(Integer, nullable=False)   # 収縮期血圧（上）
+    measured_at = Column(DateTime, nullable=False)   # 測定日時（JST）
+    systolic = Column(Integer, nullable=False)       # 収縮期血圧（上）
     diastolic = Column(Integer, nullable=False)  # 拡張期血圧（下）
     pulse = Column(Integer)                      # 脈拍
     memo = Column(Text)

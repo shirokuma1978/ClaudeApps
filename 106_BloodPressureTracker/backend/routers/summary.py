@@ -1,6 +1,5 @@
-from datetime import date
+from datetime import datetime
 from fastapi import APIRouter, Depends
-from sqlalchemy import func
 from sqlalchemy.orm import Session
 from .. import models, schemas
 from ..database import get_db
@@ -14,14 +13,17 @@ def monthly_summary(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user),
 ):
-    today = date.today()
-    month_str = today.strftime("%Y-%m")
+    now = datetime.now()
+    month_str = now.strftime("%Y-%m")
+    start = datetime(now.year, now.month, 1)
+    end = datetime(now.year + 1, 1, 1) if now.month == 12 else datetime(now.year, now.month + 1, 1)
 
     rows = (
         db.query(models.BPRecord)
         .filter(
             models.BPRecord.user_id == current_user.id,
-            func.strftime("%Y-%m", models.BPRecord.measured_date) == month_str,
+            models.BPRecord.measured_at >= start,
+            models.BPRecord.measured_at < end,
         )
         .all()
     )

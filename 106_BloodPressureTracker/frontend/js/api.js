@@ -66,23 +66,17 @@ function getBPCategory(systolic, diastolic) {
 }
 
 // ── Utilities ────────────────────────────────────────────────
-function formatDate(dateStr) {
-  if (!dateStr) return "";
-  const d = new Date(dateStr + "T00:00:00");
+function formatDateTime(dtStr) {
+  if (!dtStr) return "";
+  const d = new Date(dtStr);
   const days = ["日", "月", "火", "水", "木", "金", "土"];
-  return `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, "0")}/${String(d.getDate()).padStart(2, "0")}（${days[d.getDay()]}）`;
+  return `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, "0")}/${String(d.getDate()).padStart(2, "0")}（${days[d.getDay()]}）${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
 }
 
-function todayStr() {
+function nowLocalStr() {
   const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-}
-
-function detectTimeSlot() {
-  const h = new Date().getHours();
-  if (h >= 5 && h < 11) return "朝";
-  if (h >= 18) return "夜";
-  return "その他";
+  const offset = d.getTimezoneOffset() * 60000;
+  return new Date(d - offset).toISOString().slice(0, 16);
 }
 
 function showToast(msg) {
