@@ -76,6 +76,115 @@ body {
   margin: 0 auto;
 }
 
+/* View toggle */
+.view-toggle {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.view-btn {
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: 1.5px solid var(--border);
+  background: #fff;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.view-btn.active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+}
+
+/* Table view */
+.bp-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  font-size: 14px;
+}
+
+.bp-table th {
+  background: #f0f0f0;
+  padding: 10px 8px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.bp-table td {
+  padding: 10px 8px;
+  text-align: center;
+  border-top: 1px solid var(--border);
+}
+
+.bp-table tr {
+  cursor: pointer;
+  text-decoration: none;
+  color: var(--text);
+  display: table-row;
+}
+
+.bp-table tr:active {
+  background: #f5f5f5;
+}
+
+.bp-table .td-dt {
+  text-align: left;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.bp-table .td-bp {
+  font-weight: 700;
+  font-size: 15px;
+}
+
+/* Compact view */
+.compact-card {
+  background: var(--card-bg);
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin-bottom: 6px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+  cursor: pointer;
+  text-decoration: none;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.compact-card:active {
+  opacity: 0.85;
+}
+
+.compact-dt {
+  font-size: 12px;
+  color: var(--muted);
+  min-width: 110px;
+}
+
+.compact-bp {
+  font-size: 17px;
+  font-weight: 700;
+  flex: 1;
+}
+
+.compact-unit {
+  font-size: 11px;
+  color: var(--muted);
+  font-weight: 400;
+}
+
 /* Record Card */
 .card {
   background: var(--card-bg);
