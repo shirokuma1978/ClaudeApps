@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>記録詳細 - 血圧記録</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <header class="header">
+    <div class="header-row">
+      <button class="back-btn" onclick="window.location.href='/'">←</button>
+      <h1>記録詳細</h1>
+      <span></span>
+    </div>
+  </header>
+
+  <main class="content">
+    <div id="detail-content"></div>
+
+    <div id="action-btns" class="btn-row" style="display:none;">
+      <button id="delete-btn" class="btn btn-danger">削除</button>
+      <button id="edit-btn" class="btn btn-primary">編集</button>
+    </div>
+
+    <div id="edit-section" style="display:none;"></div>
+  </main>
+
+  <script src="/js/auth.js"></script>
+  <script src="/js/api.js"></script>
+  <script src="/js/record.js"></script>
+</body>
+</html>
